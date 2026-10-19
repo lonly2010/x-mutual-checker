@@ -342,10 +342,42 @@
     updateBadge();
   }
 
-  function applyTheme() {
-    const m = getComputedStyle(document.body).backgroundColor.match(/\d+/g);
-    root.classList.toggle('xmf-dark', m ? +m[0] + +m[1] + +m[2] < 240 : false);
+  // 跟随 X 的主题。页面刚加载时 body 背景还是透明的，不能拿来判断，
+  // 依次看：body 背景 → X 声明的 theme-color → 系统深色设置
+  function toRgb(c) {
+    if (!c) return null;
+    if (c[0] === '#') {
+      const hex = c.length === 4 ? c.replace(/\w/g, (x) => x + x).slice(1) : c.slice(1, 7);
+      const n = parseInt(hex, 16);
+      return isNaN(n) ? null : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const m = c.match(/[\d.]+/g);
+    if (!m || m.length < 3) return null;
+    if (m.length >= 4 && +m[3] < 0.5) return null; // 透明，不算数
+    return m.slice(0, 3).map(Number);
   }
+  let themeRaf = 0;
+  const scheduleTheme = () => {
+    if (themeRaf) return;
+    themeRaf = requestAnimationFrame(() => {
+      themeRaf = 0;
+      applyTheme();
+    });
+  };
+  function isDarkPage() {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    for (const c of [getComputedStyle(document.body).backgroundColor, meta && meta.content]) {
+      const rgb = toRgb(c);
+      if (rgb) return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] < 128;
+    }
+    return matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function applyTheme() {
+    root.classList.toggle('xmf-dark', isDarkPage());
+  }
+  // X 设置背景色、或你在 X 里切换主题时，跟着更新
+  new MutationObserver(scheduleTheme).observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+  new MutationObserver(scheduleTheme).observe(document.head, { subtree: true, attributes: true, attributeFilter: ['content'] });
 
   root.prepend(buildDock());
 
