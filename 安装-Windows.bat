@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title X 互关检测 - 安装助手
+title 互关检测助手 for X - 安装助手
 set "EXT=%~dp0x-mutual-checker"
 
 if not exist "%EXT%\manifest.json" (
@@ -46,7 +46,7 @@ echo.
 echo   （拖不进去的话：点「加载已解压的扩展程序」，
 echo     在弹出窗口顶部的地址栏按 Ctrl+V 粘贴路径，回车，再点「选择文件夹」）
 echo.
-echo   第 3 步：点浏览器右上角拼图图标，把「X 互关检测」固定到工具栏
+echo   第 3 步：点浏览器右上角拼图图标，把「互关检测助手 for X」固定到工具栏
 echo            以后点这个图标就能 开启 / 关闭 插件
 echo.
 echo   注意：安装后不要删除或移动这个文件夹。

@@ -1,5 +1,5 @@
 #!/bin/bash
-# X 互关检测 - Linux 安装助手（终端运行：bash 安装-Linux.sh）
+# 互关检测助手 for X - Linux 安装助手（终端运行：bash 安装-Linux.sh）
 DIR="$(cd "$(dirname "$0")" && pwd)/x-mutual-checker"
 
 if [ ! -f "$DIR/manifest.json" ]; then
@@ -40,7 +40,7 @@ echo
 echo "  第 1 步：在扩展管理页右上角打开「开发者模式」"
 echo "  第 2 步：把「x-mutual-checker」文件夹拖进扩展管理页"
 echo "          （或点「加载已解压的扩展程序」，选择上面这个路径）"
-echo "  第 3 步：点浏览器右上角拼图图标，把「X 互关检测」固定到工具栏"
+echo "  第 3 步：点浏览器右上角拼图图标，把「互关检测助手 for X」固定到工具栏"
 echo "          以后点这个图标就能 开启 / 关闭 插件"
 echo
 echo "  注意：安装后不要删除或移动这个文件夹。"

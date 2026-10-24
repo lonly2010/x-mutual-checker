@@ -1,4 +1,12 @@
-# X 互关检测 · 蓝V取关助手
+# 互关检测助手 for X
+
+[![Chrome 应用商店](https://img.shields.io/chrome-web-store/v/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=Chrome%20%E5%BA%94%E7%94%A8%E5%95%86%E5%BA%97&logo=googlechrome&logoColor=white&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
+[![用户数](https://img.shields.io/chrome-web-store/users/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=%E7%94%A8%E6%88%B7&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
+[![评分](https://img.shields.io/chrome-web-store/rating/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=%E8%AF%84%E5%88%86&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
+
+**👉 [从 Chrome 应用商店安装](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)**
+
+> 非 X（Twitter）官方产品，与 X Corp. 无关。
 
 一个 Chrome / Edge 浏览器插件：找出**曾经和你互关、后来取关了你**的 X（Twitter）账号，尤其是蓝V，集中列出来，可以一键或批量取关。
 
@@ -45,13 +53,25 @@ X 的规则禁止短时间内大量、机械地关注或取关（官方叫 *aggr
 
 支持 Chrome、Edge、Brave 等 Chromium 内核浏览器。
 
+### 方式一：从 Chrome 应用商店安装（推荐）
+
+1. 打开 **[互关检测助手 for X · Chrome 应用商店](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)**
+2. 点「**添加至 Chrome**」→「添加扩展程序」
+3. 点浏览器右上角的拼图图标，把「互关检测助手 for X」固定到工具栏
+
+从商店安装的版本会**自动更新**，不需要开发者模式。Edge 用户也可以直接从 Chrome 应用商店安装：第一次打开商店页面时，Edge 会提示「允许来自其他应用商店的扩展」，点允许即可。
+
+### 方式二：从源码安装（开发者模式）
+
+适合想用最新开发版、或者无法访问 Chrome 应用商店的情况。
+
 1. 下载本项目（GitHub 页面右上角 **Code → Download ZIP**），解压
 2. 按你的系统运行安装助手，然后跟着窗口里的提示操作：
    - **Windows**：双击 `安装-Windows.bat`
    - **Mac**：双击 `安装-Mac.command`。提示无法打开时，右键 → 打开 → 打开；如果提示「没有权限」，打开「终端」，输入 `bash `（bash 后面有一个空格），把 `安装-Mac.command` 拖进终端窗口，回车
    - **Linux**：终端运行 `bash 安装-Linux.sh`
 3. 安装助手会打开浏览器的扩展管理页。打开「开发者模式」，再把 `x-mutual-checker` 文件夹拖进去
-4. 点浏览器右上角的拼图图标，把「X 互关检测」固定到工具栏
+4. 点浏览器右上角的拼图图标，把「互关检测助手 for X」固定到工具栏
 
 也可以手动安装：打开 `chrome://extensions` → 开启「开发者模式」→「加载已解压的扩展程序」→ 选择 `x-mutual-checker` 文件夹。
 
@@ -87,9 +107,13 @@ const DELAY_MAX = 7000;
 
 ## 更新
 
-用新文件覆盖原来的 `x-mutual-checker` 文件夹，然后在 `chrome://extensions` 点插件卡片上的刷新 ↻，再刷新 x.com。
+从应用商店安装的会自动更新，不用管。
+
+从源码安装的：用新文件覆盖原来的 `x-mutual-checker` 文件夹，然后在 `chrome://extensions` 点插件卡片上的刷新 ↻，再刷新 x.com。
 
 ## 隐私
+
+完整的隐私政策见 [PRIVACY.md](PRIVACY.md)。
 
 - 所有数据（扫描结果、忽略列表、设置）只保存在你自己浏览器的本地存储（`chrome.storage.local`）里，按 X 账号分开存放
 - 插件不会把任何数据发到 X 以外的地方，也没有自己的服务器
