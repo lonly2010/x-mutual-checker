@@ -1,8 +1,6 @@
 # 互关检测助手 for X
 
 [![Chrome 应用商店](https://img.shields.io/chrome-web-store/v/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=Chrome%20%E5%BA%94%E7%94%A8%E5%95%86%E5%BA%97&logo=googlechrome&logoColor=white&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
-[![用户数](https://img.shields.io/chrome-web-store/users/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=%E7%94%A8%E6%88%B7&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
-[![评分](https://img.shields.io/chrome-web-store/rating/daijmhpcfmlgjmohmdjacdbcdedacmfo?label=%E8%AF%84%E5%88%86&color=1d9bf0)](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)
 
 **👉 [从 Chrome 应用商店安装](https://chromewebstore.google.com/detail/daijmhpcfmlgjmohmdjacdbcdedacmfo)**
 
