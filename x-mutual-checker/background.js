@@ -38,7 +38,7 @@ async function refreshBadge() {
   const { xmf_enabled } = await chrome.storage.local.get('xmf_enabled');
   await chrome.action.setBadgeText({ text: xmf_enabled ? '开' : '' });
   await chrome.action.setBadgeBackgroundColor({ color: '#1d9bf0' });
-  await chrome.action.setTitle({ title: xmf_enabled ? 'X 互关检测：已开启（点击关闭）' : 'X 互关检测：已关闭（点击开启）' });
+  await chrome.action.setTitle({ title: xmf_enabled ? '互关检测助手 for X：已开启（点击关闭）' : '互关检测助手 for X：已关闭（点击开启）' });
 }
 
 chrome.action.onClicked.addListener(async (tab) => {

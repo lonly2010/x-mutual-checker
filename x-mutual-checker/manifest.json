@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "X 互关检测 · 蓝V取关助手",
-  "version": "1.7.1",
-  "description": "找出曾经互关、后来取关了你的蓝V账号，一键整理并取关。",
+  "name": "互关检测助手 for X",
+  "version": "1.8.0",
+  "description": "查看 X（Twitter）上谁取关了你：找出曾经互关、后来取关你的账号，区分真取关与账号受限，并可分批取关。非 X 官方产品。",
   "permissions": [
     "storage"
   ],
@@ -40,7 +40,7 @@
     }
   ],
   "action": {
-    "default_title": "X 互关检测（点击开启 / 关闭）",
+    "default_title": "互关检测助手 for X（点击开启 / 关闭）",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -52,5 +52,6 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "short_name": "互关检测助手"
 }

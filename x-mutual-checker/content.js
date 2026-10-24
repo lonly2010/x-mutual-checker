@@ -148,7 +148,7 @@
         h(
           'div',
           { class: 'xmf-head' },
-          h('div', null, h('div', { class: 'xmf-title' }, '互关检测 · 蓝V'), ref('sub', h('div', { class: 'xmf-sub' }))),
+          h('div', null, h('div', { class: 'xmf-title' }, '互关检测助手'), ref('sub', h('div', { class: 'xmf-sub' }))),
           h('button', { class: 'xmf-x', title: '关闭', onclick: () => togglePanel(false) }, '×')
         ),
         h(
@@ -268,8 +268,8 @@
     R.ringFg.style.strokeDashoffset = RING_C;
     R.fabPct = h('span', { class: 'xmf-fab-pct' });
     R.fabBadge = h('span', { class: 'xmf-fab-badge', hidden: true });
-    R.fabTip = h('span', { class: 'xmf-fab-tip' }, '互关检测');
-    R.fab = h('button', { class: 'xmf-fab', 'aria-label': 'X 互关检测' }, ring, icon, R.fabPct);
+    R.fabTip = h('span', { class: 'xmf-fab-tip' }, '互关检测助手');
+    R.fab = h('button', { class: 'xmf-fab', 'aria-label': '互关检测助手 for X' }, ring, icon, R.fabPct);
     R.dock = h('div', { class: 'xmf-dock' }, R.fabTip, R.fab, R.fabBadge);
     bindDrag();
     return R.dock;
@@ -329,7 +329,7 @@
     const n = Object.values(S.st.unfollowers).filter((u) => !S.st.ignored[u.id] && isReal(u)).length;
     R.fabBadge.hidden = !n || S.scanning;
     R.fabBadge.textContent = n > 99 ? '99+' : String(n);
-    R.fabTip.textContent = S.scanning ? '扫描中…' : n ? `${n} 个人取关了你` : '互关检测';
+    R.fabTip.textContent = S.scanning ? '扫描中…' : n ? `${n} 个人取关了你` : '互关检测助手';
   }
 
   // 扫描时：按钮外圈显示进度，中间显示百分比
