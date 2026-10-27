@@ -153,6 +153,8 @@
       // 账号状态：X 给受限账号打的标记（主页会显示「此账号暂时受限」），以及对方当前关注了多少人
       interstitial: (r.profile_metadata && r.profile_metadata.profile_interstitial_type) || '',
       followingCount: typeof RC.following === 'number' ? RC.following : null,
+      // 个人简介：悬停卡片里显示，截短一点省存储
+      bio: String((r.profile_bio && r.profile_bio.description) || L.description || '').slice(0, 200),
     };
   }
 
@@ -181,12 +183,12 @@
   }
 
   // ---------- 找接口编号：X 的代码里写着 queryId:"xxx",operationName:"Following" ----------
-  async function discoverQid() {
+  async function discoverQid(op = 'Following') {
     const srcs = [...document.scripts].map((s) => s.src).filter((s) => /client-web/.test(s));
     for (const src of srcs) {
       try {
         const t = await (await origFetch(src)).text();
-        const m = t.match(/queryId:"([^"]+)",operationName:"Following"/);
+        const m = t.match(new RegExp('queryId:"([^"]+)",operationName:"' + op + '"'));
         if (m) return m[1];
       } catch {}
     }
@@ -382,11 +384,69 @@
     }
   }
 
+  // ---------- 悬停卡片：没存简介的账号，读一次他的资料（和打开 X 个人主页时用同一个接口） ----------
+  const PROFILE_QID_KEY = 'xmf_qid_userbyscreenname';
+  async function profileQid(fresh) {
+    if (!fresh)
+      try {
+        const c = localStorage.getItem(PROFILE_QID_KEY);
+        if (c) return c;
+      } catch {}
+    const q = await discoverQid('UserByScreenName');
+    if (q)
+      try {
+        localStorage.setItem(PROFILE_QID_KEY, q);
+      } catch {}
+    return q;
+  }
+  async function userProfile(screenName) {
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const qid = await profileQid(attempt > 0);
+        if (!qid) return { ok: false, error: '找不到资料接口' };
+        const url =
+          location.origin + '/i/api/graphql/' + qid + '/UserByScreenName?variables=' +
+          encodeURIComponent(JSON.stringify({ screen_name: screenName })) + '&features=%7B%7D';
+        const res = await origFetch(url, { credentials: 'include', headers: apiHeaders() });
+        if (res.status === 400 || res.status === 404) continue; // 接口编号过期，重新找一次
+        if (!res.ok) return { ok: false, error: 'HTTP ' + res.status };
+        const j = await res.json();
+        const u = norm(j && j.data && j.data.user && j.data.user.result);
+        return u ? { ok: true, user: u } : { ok: false, error: '没有资料' };
+      }
+      return { ok: false, error: '资料接口不可用' };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  }
+
+  // ---------- 悬停卡片：你关注的人里有谁关注了他（和 X 自己的悬停卡片用同一个接口） ----------
+  async function knownFollowers(id) {
+    try {
+      const qs = new URLSearchParams({ include_ext_is_blue_verified: 1, skip_status: 1, cursor: -1, user_id: id, count: 3, with_total_count: true });
+      const res = await origFetch(location.origin + '/i/api/1.1/friends/following/list.json?' + qs, {
+        credentials: 'include',
+        headers: apiHeaders(),
+      });
+      if (!res.ok) return { ok: false, error: 'HTTP ' + res.status };
+      const j = await res.json();
+      return {
+        ok: true,
+        total: typeof j.total_count === 'number' ? j.total_count : (j.users || []).length,
+        users: (j.users || []).slice(0, 3).map((u) => ({ name: u.name, screen_name: u.screen_name, avatar: u.profile_image_url_https })),
+      };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  }
+
   window.addEventListener('message', (e) => {
     if (e.source !== window || !e.data || e.data.source !== SRC_IN) return;
     const d = e.data;
     if (d.type === 'scan') scan({ ...d, viewerId: String(d.viewerId) });
     else if (d.type === 'stopScan') stopFlag = true;
     else if (d.type === 'unfollow') unfollow(String(d.id)).then((r) => post('unfollowResult', { reqId: d.reqId, ...r }));
+    else if (d.type === 'userProfile') userProfile(String(d.screenName)).then((r) => post('userProfileResult', { reqId: d.reqId, ...r }));
+    else if (d.type === 'knownFollowers') knownFollowers(String(d.id)).then((r) => post('knownFollowersResult', { reqId: d.reqId, ...r }));
   });
 })();

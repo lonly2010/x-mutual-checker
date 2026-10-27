@@ -191,3 +191,51 @@
 @media (prefers-reduced-motion: reduce) {
   #xmf-root .xmf-btn, #xmf-root .xmf-kinds button, #xmf-root .xmf-tabs button { transition: none; transform: none !important; }
 }
+
+/* 悬停卡片：和 X 的个人信息小卡片一样 */
+#xmf-root .xmf-hcard {
+  position: fixed; z-index: 2147483002; width: 300px; padding: 16px;
+  background: var(--bg); color: var(--fg); border-radius: 16px; font-size: 15px; line-height: 20px;
+  box-shadow: rgba(101,119,134,.2) 0 0 15px, rgba(101,119,134,.15) 0 0 3px 1px;
+  animation: xmf-hc-in .14s ease-out;
+}
+#xmf-root.xmf-dark .xmf-hcard { box-shadow: rgba(255,255,255,.2) 0 0 15px, rgba(255,255,255,.15) 0 0 3px 1px; }
+#xmf-root .xmf-hcard a { color: inherit; text-decoration: none; }
+#xmf-root .xmf-hc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+#xmf-root .xmf-hc-av { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: var(--line); }
+#xmf-root .xmf-hc-av:hover { filter: brightness(.9); }
+/* 「正在关注」按钮，悬停变成红色「取消关注」，和 X 一样 */
+#xmf-root .xmf-hc-follow {
+  min-width: 102px; height: 36px; padding: 0 16px; margin: 0; border-radius: 999px; cursor: pointer;
+  border: 1px solid #cfd9de; background: transparent; color: var(--fg);
+  font: 700 15px/1 inherit; font-family: inherit; transition: background .15s, color .15s, border-color .15s;
+}
+#xmf-root.xmf-dark .xmf-hc-follow { border-color: #536471; }
+#xmf-root .xmf-hc-follow .off { display: none; }
+#xmf-root .xmf-hc-follow:not(:disabled):hover { color: #f4212e; border-color: #fdc9ce; background: rgba(244,33,46,.1); }
+#xmf-root.xmf-dark .xmf-hc-follow:not(:disabled):hover { border-color: #67070f; }
+#xmf-root .xmf-hc-follow:not(:disabled):hover .on { display: none; }
+#xmf-root .xmf-hc-follow:not(:disabled):hover .off { display: inline; }
+#xmf-root .xmf-hc-follow:disabled { opacity: .5; cursor: default; }
+#xmf-root .xmf-hc-name { display: flex; align-items: center; gap: 2px; margin-top: 4px; font-weight: 700; font-size: 17px; line-height: 24px; }
+#xmf-root .xmf-hc-name a:hover { text-decoration: underline; }
+#xmf-root .xmf-hc-name .xmf-badge { width: 18px; height: 18px; font-size: 11px; margin-left: 2px; }
+#xmf-root .xmf-hc-handle { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; color: var(--muted); }
+#xmf-root .xmf-hc-fy { padding: 0 4px; border-radius: 4px; background: var(--hover); color: var(--muted); font-size: 12px; line-height: 16px; }
+#xmf-root.xmf-dark .xmf-hc-fy { background: #202327; }
+#xmf-root .xmf-hc-bio { margin-top: 12px; white-space: pre-wrap; word-break: break-word; }
+#xmf-root .xmf-hc-counts { display: flex; gap: 20px; margin-top: 12px; color: var(--muted); font-size: 14px; }
+#xmf-root .xmf-hc-counts a:hover { text-decoration: underline; }
+#xmf-root .xmf-hc-counts b { color: var(--fg); font-weight: 700; }
+#xmf-root .xmf-hc-known { display: flex; align-items: center; gap: 8px; min-height: 20px; margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 16px; }
+#xmf-root .xmf-hc-known.loading::before { content: ""; width: 60%; height: 10px; border-radius: 5px; background: var(--line); }
+#xmf-root .xmf-hc-kav { display: flex; flex: none; padding-left: 6px; }
+#xmf-root .xmf-hc-kav img { width: 20px; height: 20px; margin-left: -6px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg); background: var(--line); }
+#xmf-root .xmf-hc-profile {
+  display: flex; align-items: center; justify-content: center; height: 36px; margin-top: 12px; border-radius: 999px;
+  border: 1px solid #cfd9de; font-weight: 700; font-size: 15px; transition: background .15s;
+}
+#xmf-root.xmf-dark .xmf-hc-profile { border-color: #536471; }
+#xmf-root .xmf-hc-profile:hover { background: var(--hover); }
+@keyframes xmf-hc-in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { #xmf-root .xmf-hcard { animation: none; } }

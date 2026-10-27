@@ -388,6 +388,7 @@
   function togglePanel(force) {
     const show = force === undefined ? R.panel.hidden : force;
     R.panel.hidden = !show;
+    if (!show && R.card) hideCard(true);
     R.dock.classList.toggle('open', show);
     if (show) {
       CNT.stopped = false;
@@ -554,18 +555,18 @@
           updateFoot();
         },
       }),
-      h('img', { class: 'xmf-av', src: u.avatar || '', loading: 'lazy', decoding: 'async', alt: '' }),
+      h('img', { class: 'xmf-av', 'data-uid': u.id, src: u.avatar || '', loading: 'lazy', decoding: 'async', alt: '' }),
       h(
         'div',
         { class: 'xmf-info' },
         h(
           'div',
           { class: 'xmf-name' },
-          h('span', { class: 'xmf-nm' }, u.name || u.screen_name),
+          h('span', { class: 'xmf-nm', 'data-uid': u.id }, u.name || u.screen_name),
           u.blue ? h('span', { class: 'xmf-badge' + (u.verifiedType === 'Business' ? ' gold' : ''), title: '已认证' }, '✓') : null,
           stateTag(u)
         ),
-        h('a', { class: 'xmf-handle', href: '/' + u.screen_name, target: '_blank', rel: 'noopener' }, '@' + u.screen_name),
+        h('a', { class: 'xmf-handle', 'data-uid': u.id, href: '/' + u.screen_name, target: '_blank', rel: 'noopener' }, '@' + u.screen_name),
         h(
           'div',
           { class: 'xmf-meta' },
@@ -581,6 +582,163 @@
       )
     );
   }
+
+  // ---------- 悬停卡片：鼠标停在头像 / 名字 / @用户名上，弹出和 X 一样的个人信息小卡片 ----------
+  const HOVER = { timer: 0, hideTimer: 0, uid: null };
+  const fmtFull = (n) => (typeof n === 'number' ? n.toLocaleString('en-US') : '—');
+  function bigAvatar(url) {
+    return (url || '').replace(/_(normal|bigger|mini)\.(\w+)$/, '_200x200.$2');
+  }
+  // 你关注的人里有谁关注了他：每个账号只查一次，结果存在内存里
+  const KNOWN = new Map();
+  function knownLine(k) {
+    const names = k.users.map((x) => x.name || '@' + x.screen_name);
+    if (!k.total) return '没有你关注的人关注此账号';
+    if (k.total === 1) return `${names[0]} 关注了此账号`;
+    if (k.total === 2) return `${names[0]} 和 ${names[1]} 关注了此账号`;
+    if (k.total === 3 && names.length === 3) return `${names[0]}、${names[1]} 和 ${names[2]} 关注了此账号`;
+    return `${names.slice(0, 2).join('、')} 和你关注的另外 ${(k.total - Math.min(2, names.length)).toLocaleString('en-US')} 人关注了此账号`;
+  }
+  function fillKnown(box, k) {
+    if (!k || !k.ok) return box.remove();
+    box.replaceChildren(
+      ...[
+        k.users.length ? h('span', { class: 'xmf-hc-kav' }, k.users.map((x) => h('img', { src: x.avatar || '', alt: '' }))) : null,
+        h('span', { class: 'xmf-hc-ktxt' }, knownLine(k)),
+      ].filter(Boolean)
+    );
+    box.classList.remove('loading');
+  }
+  function loadKnown(u, box) {
+    const hit = KNOWN.get(u.id);
+    if (hit && !(hit instanceof Promise)) return fillKnown(box, hit);
+    const p = hit || callPage('knownFollowers', { id: u.id });
+    KNOWN.set(u.id, p);
+    p.then((k) => {
+      KNOWN.set(u.id, k.ok ? k : undefined);
+      if (box.isConnected) fillKnown(box, k);
+    });
+  }
+  // 简介：以前的扫描没存简介，悬停时读一次他的资料补上，顺便更新粉丝数，存回本地
+  const PROFILE = new Map();
+  let profileSaveTimer = 0;
+  function loadProfile(u) {
+    if (u.bio !== undefined || PROFILE.has(u.id)) return;
+    const p = callPage('userProfile', { screenName: u.screen_name });
+    PROFILE.set(u.id, p);
+    p.then((r) => {
+      if (!r.ok) return;
+      const f = r.user;
+      for (const x of [S.st.unfollowers[u.id], ...S.st.nonFollowback.filter((y) => y.id === u.id), u])
+        if (x) {
+          x.bio = f.bio || '';
+          if (f.followers != null) x.followers = f.followers;
+          if (f.followingCount != null) x.followingCount = f.followingCount;
+          if (f.avatar) x.avatar = f.avatar;
+        }
+      clearTimeout(profileSaveTimer);
+      profileSaveTimer = setTimeout(save, 2000);
+      if (HOVER.uid === u.id && !R.card.hidden && HOVER.anchor && HOVER.anchor.isConnected) showCard(HOVER.anchor, u);
+    });
+  }
+  function cardFor(u) {
+    const url = '/' + u.screen_name;
+    const st = accountState(u);
+    const known = h('div', { class: 'xmf-hc-known loading' });
+    loadKnown(u, known);
+    return [
+      h(
+        'div',
+        { class: 'xmf-hc-top' },
+        h('a', { href: url, target: '_blank', rel: 'noopener' }, h('img', { class: 'xmf-hc-av', src: bigAvatar(u.avatar), alt: '' })),
+        h(
+          'button',
+          {
+            class: 'xmf-hc-follow',
+            disabled: S.bulk,
+            onclick: () => {
+              hideCard(true);
+              unfollowSingle(u);
+            },
+          },
+          h('span', { class: 'on' }, '正在关注'),
+          h('span', { class: 'off' }, '取消关注')
+        )
+      ),
+      h(
+        'div',
+        { class: 'xmf-hc-name' },
+        h('a', { href: url, target: '_blank', rel: 'noopener' }, u.name || u.screen_name),
+        u.blue ? h('span', { class: 'xmf-badge' + (u.verifiedType === 'Business' ? ' gold' : '') }, '✓') : null
+      ),
+      h(
+        'div',
+        { class: 'xmf-hc-handle' },
+        h('a', { href: url, target: '_blank', rel: 'noopener' }, '@' + u.screen_name),
+        u.followedBy ? h('span', { class: 'xmf-hc-fy' }, '关注了你') : null,
+        st === 'restricted' ? h('span', { class: 'xmf-tag warn' }, '账号受限') : null
+      ),
+      u.bio ? h('div', { class: 'xmf-hc-bio' }, u.bio) : null,
+      h(
+        'div',
+        { class: 'xmf-hc-counts' },
+        h('a', { href: url + '/following', target: '_blank', rel: 'noopener' }, h('b', null, fmtFull(u.followingCount)), ' 正在关注'),
+        h('a', { href: url + '/verified_followers', target: '_blank', rel: 'noopener' }, h('b', null, fmtFull(u.followers)), ' 关注者')
+      ),
+      known,
+      h('a', { class: 'xmf-hc-profile', href: url, target: '_blank', rel: 'noopener' }, '查看个人资料'),
+    ];
+  }
+  function placeCard(anchor) {
+    const a = anchor.getBoundingClientRect();
+    const c = R.card;
+    const w = c.offsetWidth;
+    const ch = c.offsetHeight;
+    let left = Math.max(8, Math.min(window.innerWidth - w - 8, a.left - 12));
+    let top = a.bottom + 8;
+    if (top + ch > window.innerHeight - 8) top = Math.max(8, a.top - ch - 8);
+    c.style.left = left + 'px';
+    c.style.top = top + 'px';
+  }
+  function showCard(anchor, u) {
+    clearTimeout(HOVER.hideTimer);
+    HOVER.uid = u.id;
+    HOVER.anchor = anchor;
+    loadProfile(u);
+    R.card.replaceChildren(...cardFor(u).filter(Boolean));
+    R.card.hidden = false;
+    placeCard(anchor);
+  }
+  function hideCard(now) {
+    clearTimeout(HOVER.timer);
+    clearTimeout(HOVER.hideTimer);
+    const go = () => {
+      R.card.hidden = true;
+      HOVER.uid = null;
+    };
+    if (now) go();
+    else HOVER.hideTimer = setTimeout(go, 250);
+  }
+  R.card = h('div', { class: 'xmf-hcard', hidden: true });
+  R.card.addEventListener('mouseenter', () => clearTimeout(HOVER.hideTimer));
+  R.card.addEventListener('mouseleave', () => hideCard());
+  root.append(R.card);
+  R.list.addEventListener('mouseover', (e) => {
+    const t = e.target.closest && e.target.closest('[data-uid]');
+    if (!t || t.contains(e.relatedTarget)) return;
+    const m = rowMeta.get(t.dataset.uid);
+    if (!m) return;
+    clearTimeout(HOVER.timer);
+    clearTimeout(HOVER.hideTimer);
+    if (HOVER.uid === m.u.id && !R.card.hidden) return;
+    HOVER.timer = setTimeout(() => showCard(t, m.u), 400);
+  });
+  R.list.addEventListener('mouseout', (e) => {
+    const t = e.target.closest && e.target.closest('[data-uid]');
+    if (!t || t.contains(e.relatedTarget)) return;
+    hideCard();
+  });
+  R.list.addEventListener('scroll', () => hideCard(true), { passive: true });
 
   function selectAll(on) {
     S.sel.clear();
