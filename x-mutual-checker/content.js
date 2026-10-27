@@ -148,8 +148,20 @@
         h(
           'div',
           { class: 'xmf-head' },
-          h('div', null, h('div', { class: 'xmf-title' }, '互关检测助手'), ref('sub', h('div', { class: 'xmf-sub' }))),
-          h('button', { class: 'xmf-x', title: '关闭', onclick: () => togglePanel(false) }, '×')
+          h(
+            'div',
+            { class: 'xmf-brand' },
+            h('span', { class: 'xmf-logo', 'aria-hidden': 'true' }),
+            h('div', null, h('div', { class: 'xmf-title' }, '互关检测助手'), ref('sub', h('div', { class: 'xmf-sub' })))
+          ),
+          h('button', { class: 'xmf-ib xmf-x', title: '关闭', onclick: () => togglePanel(false) })
+        ),
+        h(
+          'div',
+          { class: 'xmf-stats' },
+          h('div', { class: 'xmf-stat' }, ref('sFollow', h('b', null, '—')), h('span', null, '关注')),
+          h('div', { class: 'xmf-stat ok' }, ref('sMutual', h('b', null, '—')), h('span', null, '互关')),
+          h('div', { class: 'xmf-stat hot' }, ref('sUnf', h('b', null, '—')), h('span', null, '取关了我'))
         ),
         h(
           'div',
@@ -170,21 +182,30 @@
         h(
           'div',
           { class: 'xmf-tabs' },
-          ref('tabUnf', h('button', { class: 'on', onclick: () => setTab('unf') }, '取关了我 ', ref('cUnf', h('b', null, '0')))),
-          ref('tabNfb', h('button', { onclick: () => setTab('nfb') }, '未回关 ', ref('cNfb', h('b', null, '0'))))
+          ref(
+            'seg',
+            h(
+              'div',
+              { class: 'xmf-seg', role: 'tablist' },
+              h('span', { class: 'xmf-seg-ind', 'aria-hidden': 'true' }),
+              ref('tabUnf', h('button', { class: 'on', role: 'tab', onclick: () => setTab('unf') }, '取关了我', ref('cUnf', h('b', null, '0')))),
+              ref('tabNfb', h('button', { role: 'tab', onclick: () => setTab('nfb') }, '未回关', ref('cNfb', h('b', null, '0'))))
+            )
+          )
         ),
         ref(
           'kinds',
           h(
             'div',
             { class: 'xmf-kinds' },
-            ref('kindReal', h('button', { class: 'on', onclick: () => setKind('real') }, '真的取关 ', ref('cReal', h('b', null, '0')))),
+            h('span', { class: 'xmf-kinds-ind', 'aria-hidden': 'true' }),
+            ref('kindReal', h('button', { class: 'on', onclick: () => setKind('real') }, '真的取关', ref('cReal', h('b', null, '0')))),
             ref(
               'kindOdd',
               h(
                 'button',
                 { onclick: () => setKind('odd'), title: '账号被 X 限制，或对方清空了关注，不是主动取关' },
-                '账号异常 ',
+                '账号异常',
                 ref('cOdd', h('b', null, '0'))
               )
             )
@@ -212,6 +233,7 @@
           ),
           h('input', {
             class: 'xmf-q',
+            type: 'search',
             placeholder: '搜索名称 / 用户名',
             oninput: (e) => {
               S.q = e.target.value.trim().toLowerCase();
@@ -364,16 +386,21 @@
       applyTheme();
     });
   };
-  function isDarkPage() {
+  // 跟随 X 的三种背景：默认（白）/ 昏暗（暗蓝）/ 熄灯（黑）
+  function pageTheme() {
     const meta = document.querySelector('meta[name="theme-color"]');
     for (const c of [getComputedStyle(document.body).backgroundColor, meta && meta.content]) {
       const rgb = toRgb(c);
-      if (rgb) return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] < 128;
+      if (!rgb) continue;
+      const lum = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+      if (lum >= 128) return 'light';
+      if (lum < 8) return 'black';
+      return rgb[2] > rgb[0] + 12 ? 'dim' : 'black';
     }
-    return matchMedia('(prefers-color-scheme: dark)').matches;
+    return matchMedia('(prefers-color-scheme: dark)').matches ? 'black' : 'light';
   }
   function applyTheme() {
-    root.classList.toggle('xmf-dark', isDarkPage());
+    root.dataset.bg = pageTheme();
   }
   // X 设置背景色、或你在 X 里切换主题时，跟着更新
   new MutationObserver(scheduleTheme).observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -402,6 +429,7 @@
     S.sel.clear();
     R.tabUnf.classList.toggle('on', t === 'unf');
     R.tabNfb.classList.toggle('on', t === 'nfb');
+    R.seg.classList.toggle('r', t === 'nfb');
     resetPaging();
     render();
   }
@@ -420,6 +448,7 @@
     S.sel.clear();
     R.kindReal.classList.toggle('on', k === 'real');
     R.kindOdd.classList.toggle('on', k === 'odd');
+    R.kinds.classList.toggle('r', k === 'odd');
     resetPaging();
     render();
   }
@@ -458,12 +487,16 @@
     const handle = getMyHandle();
     R.sub.textContent =
       (handle ? '@' + handle + ' · ' : '') +
-      (st.lastScanAt ? `上次扫描 ${fmtDate(st.lastScanAt)} · 关注 ${st.lastCount}` : '还没扫描过');
+      (st.lastScanAt ? `上次扫描 ${fmtDate(st.lastScanAt)}` : '还没扫描过');
     const unfAll = baseList('unf');
     const realN = unfAll.filter(isReal).length;
     R.cUnf.textContent = realN;
     R.cReal.textContent = realN;
     R.cOdd.textContent = unfAll.length - realN;
+    const allUnfReal = Object.values(st.unfollowers).filter((u) => !st.ignored[u.id] && isReal(u)).length;
+    R.sFollow.textContent = st.lastScanAt ? st.lastCount : '—';
+    R.sMutual.textContent = st.lastScanAt ? (st.lastMutual != null ? st.lastMutual : Math.max(0, st.lastCount - st.nonFollowback.length)) : '—';
+    R.sUnf.textContent = st.lastScanAt ? allUnfReal : '—';
     R.kinds.hidden = S.tab !== 'unf';
     R.cNfb.textContent = baseList('nfb').length;
 
@@ -479,7 +512,6 @@
       const all = st.nonFollowback.filter((u) => !st.ignored[u.id]);
       hint = `你关注了、但目前没有关注你的账号（包括从来没回关的）：共 ${all.length} 个，其中蓝V ${all.filter((u) => u.blue).length} 个。${S.onlyBlue ? '当前只显示蓝V，取消勾选“仅蓝V”可看全部。' : ''}`;
     }
-    if (st.lastScanAt) hint += ' 结果已保存，打开面板就能看，不用每次都重新扫描。';
     if (st.lastCount && st.unknown > st.lastCount * 0.5)
       hint += ' ⚠ 有大量账号无法判断是否关注你，X 可能改了接口，结果可能不准。';
     R.hint.textContent = hint;
@@ -757,6 +789,7 @@
       st.unknown = users.filter((u) => u.followedBy == null).length;
       st.lastScanAt = now;
       st.lastCount = users.length;
+      st.lastMutual = users.filter((u) => u.followedBy === true).length;
     }
     await save();
     return added;
